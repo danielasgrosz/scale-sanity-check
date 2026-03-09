@@ -2,6 +2,7 @@
 
 import React, { useMemo, useRef, useState } from "react";
 import Papa from "papaparse";
+import * as XLSX from "xlsx";
 import { computeFromOrders, Inputs, OrderRow, Outputs } from "@/lib/calc";
 
 declare global {
@@ -500,6 +501,25 @@ export default function HomePage() {
 function ExportGuide() {
   const [open, setOpen] = useState(false);
 
+  function downloadSampleXLSX() {
+    const data = [
+      { "Order ID": "ORD-1001", "Gross Revenue": 127.50, "Refund Amount": 0.00 },
+      { "Order ID": "ORD-1002", "Gross Revenue": 89.00,  "Refund Amount": 0.00 },
+      { "Order ID": "ORD-1003", "Gross Revenue": 54.99,  "Refund Amount": 54.99 },
+      { "Order ID": "ORD-1004", "Gross Revenue": 163.00, "Refund Amount": 0.00 },
+      { "Order ID": "ORD-1005", "Gross Revenue": 42.50,  "Refund Amount": 0.00 },
+      { "Order ID": "ORD-1006", "Gross Revenue": 98.75,  "Refund Amount": 0.00 },
+      { "Order ID": "ORD-1007", "Gross Revenue": 175.00, "Refund Amount": 0.00 },
+      { "Order ID": "ORD-1008", "Gross Revenue": 67.25,  "Refund Amount": 67.25 },
+      { "Order ID": "ORD-1009", "Gross Revenue": 149.99, "Refund Amount": 0.00 },
+      { "Order ID": "ORD-1010", "Gross Revenue": 38.00,  "Refund Amount": 0.00 },
+    ];
+    const ws = XLSX.utils.json_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Orders");
+    XLSX.writeFile(wb, "sample-orders.xlsx");
+  }
+
   const platforms = [
     {
       name: "Shopify",
@@ -517,19 +537,31 @@ function ExportGuide() {
 
   return (
     <div className="border-t border-gray-100 mt-1">
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        className="w-full flex items-center justify-between px-4 py-3 text-xs text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
-      >
-        <span className="font-medium">How to export your CSV</span>
-        <svg
-          className={`w-3.5 h-3.5 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
-          viewBox="0 0 14 14" fill="none"
+      <div className="flex items-center justify-between px-4 py-3">
+        <button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
         >
-          <path d="M3 5l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-        </svg>
-      </button>
+          <span className="font-medium">How to export your CSV</span>
+          <svg
+            className={`w-3.5 h-3.5 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
+            viewBox="0 0 14 14" fill="none"
+          >
+            <path d="M3 5l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </button>
+        <button
+          type="button"
+          onClick={downloadSampleXLSX}
+          className="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-700 transition-colors cursor-pointer"
+        >
+          <svg className="w-3 h-3" viewBox="0 0 12 12" fill="none">
+            <path d="M6 1v6M6 7l-2-2M6 7l2-2M1.5 9.5v.5a1 1 0 001 1h7a1 1 0 001-1v-.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+          Download sample spreadsheet
+        </button>
+      </div>
 
       {open && (
         <div className="px-4 pb-4 grid grid-cols-3 gap-4">
