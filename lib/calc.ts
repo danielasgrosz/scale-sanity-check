@@ -21,11 +21,13 @@ export type Outputs = {
   cogsTotal: number;
   contributionProfit: number;
   profitAfterAds: number;
-  refundRatePct: number;        // 0..1
-  trueRoasX: number;            // multiplier (e.g. 2.50)
-  contributionMarginPct: number; // 0..1 (contributionProfit / grossRevenue)
-  breakEvenRoasX: number;        // multiplier (1 / contributionMarginPct)
-  marginBufferPct: number;       // percentage points (trueROAS / breakEvenROAS - 1) * 100
+  refundRatePct: number; // 0..1
+  trueRoasX: number;     // multiplier (e.g. 2.50)
+
+  // NEW METRICS
+  contributionMarginPct: number; // 0..1
+  breakEvenRoasX: number;        // multiplier
+  marginBufferPct: number;       // 0..1 (can be negative)
 };
 
 const round2 = (n: number) => Math.round((n + Number.EPSILON) * 100) / 100;
@@ -62,10 +64,16 @@ export function computeFromOrders(inputs: Inputs, orders: OrderRow[]): Outputs {
 
   const trueRoasX = inputs.adSpend > 0 ? grossRevenue / inputs.adSpend : 0;
 
-  const contributionMarginPct = grossRevenue > 0 ? contributionProfit / grossRevenue : 0;
-  const breakEvenRoasX = contributionMarginPct > 0 ? 1 / contributionMarginPct : 0;
+  // NEW METRICS
+  const contributionMarginPct =
+    grossRevenue > 0 ? contributionProfit / grossRevenue : 0;
+
+  const breakEvenRoasX =
+    contributionMarginPct > 0 ? 1 / contributionMarginPct : 0;
+
+  // store as DECIMAL (0.25 = 25%). can be negative if below break-even.
   const marginBufferPct =
-    breakEvenRoasX > 0 ? (trueRoasX / breakEvenRoasX - 1) * 100 : 0;
+    breakEvenRoasX > 0 ? (trueRoasX / breakEvenRoasX - 1) : 0;
 
   return {
     orderCount,
@@ -78,6 +86,7 @@ export function computeFromOrders(inputs: Inputs, orders: OrderRow[]): Outputs {
     profitAfterAds: round2(profitAfterAds),
     refundRatePct,
     trueRoasX,
+
     contributionMarginPct,
     breakEvenRoasX,
     marginBufferPct,
