@@ -164,6 +164,22 @@ export default function HomePage() {
           </p>
         </div>
 
+        {/* Early access banner */}
+        <div className="mb-8 flex flex-col sm:flex-row sm:items-center gap-3 rounded-xl bg-indigo-50 border border-indigo-100 px-4 py-3.5">
+          <p className="flex-1 text-sm text-indigo-700 leading-relaxed">
+            We&apos;re building smarter tools — ad scaling simulations, spend recommendations, and insights based on your actual numbers.
+          </p>
+          <a
+            href={EARLY_ACCESS_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => window.plausible?.("EarlyAccessClick")}
+            className="shrink-0 text-xs font-semibold px-3.5 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition-colors"
+          >
+            Join Early Access
+          </a>
+        </div>
+
         {/* Steps */}
         <div className="space-y-3">
 
