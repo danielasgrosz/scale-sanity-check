@@ -267,6 +267,7 @@ export default function HomePage() {
                   <p className="text-xs text-amber-700">Your CSV only has {csv!.rows.length} row of data — make sure you exported all orders, not just a summary.</p>
                 </div>
               )}
+              {!csv && <ExportGuide />}
             </div>
           </StepCard>
 
@@ -495,6 +496,61 @@ export default function HomePage() {
 }
 
 /* ─── Sub-components ────────────────────────────────────────── */
+
+function ExportGuide() {
+  const [open, setOpen] = useState(false);
+
+  const platforms = [
+    {
+      name: "Shopify",
+      steps: ["Go to Orders in your Shopify admin", "Click Export (top right)", "Choose All orders", "Select CSV for Excel and export"],
+    },
+    {
+      name: "WooCommerce",
+      steps: ["Go to WooCommerce → Orders", "Click the Export button", "Choose CSV as the format", "Export all orders"],
+    },
+    {
+      name: "Any other platform",
+      steps: ["Export your orders as a CSV file", "Make sure row 1 has column headers", "Include at least one column for order revenue (e.g. Total, Amount, Gross Revenue)"],
+    },
+  ];
+
+  return (
+    <div className="border-t border-gray-100 mt-1">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="w-full flex items-center justify-between px-4 py-3 text-xs text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
+      >
+        <span className="font-medium">How to export your CSV</span>
+        <svg
+          className={`w-3.5 h-3.5 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
+          viewBox="0 0 14 14" fill="none"
+        >
+          <path d="M3 5l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      </button>
+
+      {open && (
+        <div className="px-4 pb-4 grid grid-cols-3 gap-4">
+          {platforms.map((p) => (
+            <div key={p.name}>
+              <p className="text-[11px] font-semibold text-gray-500 mb-2">{p.name}</p>
+              <ol className="space-y-1.5">
+                {p.steps.map((step, i) => (
+                  <li key={i} className="flex items-start gap-1.5">
+                    <span className="shrink-0 w-4 h-4 rounded-full bg-gray-100 text-gray-400 text-[10px] font-bold flex items-center justify-center mt-0.5">{i + 1}</span>
+                    <span className="text-[11px] text-gray-500 leading-relaxed">{step}</span>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 function StepCard({
   step,
