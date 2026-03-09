@@ -553,7 +553,7 @@ function ExportGuide() {
         </button>
         <button
           type="button"
-          onClick={downloadSampleXLSX}
+          onClick={(e) => { e.stopPropagation(); downloadSampleXLSX(); }}
           className="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-700 transition-colors cursor-pointer"
         >
           <svg className="w-3 h-3" viewBox="0 0 12 12" fill="none">
