@@ -331,6 +331,9 @@ export default function HomePage() {
             {/* Summary callout */}
             <Summary outputs={outputs} />
 
+            {/* Recommendations */}
+            <Recommendations outputs={outputs} />
+
             {/* Revenue breakdown */}
             <MetricGroup label="Revenue">
               <MetricCard
@@ -682,6 +685,87 @@ function EarlyAccessCard() {
         >
           Join Early Access
         </a>
+      </div>
+    </div>
+  );
+}
+
+function Recommendations({ outputs }: { outputs: Outputs }) {
+  type Rec = { tone: "positive" | "negative" | "neutral"; text: string };
+  const recs: Rec[] = [];
+
+  // Always: break-even ROAS baseline
+  if (outputs.breakEvenRoasX > 0) {
+    recs.push({
+      tone: "neutral",
+      text: `To break even, you need at least ${fmtX(outputs.breakEvenRoasX)} in gross revenue for every $1 of ad spend.`,
+    });
+  }
+
+  if (outputs.profitAfterAds < 0) {
+    if (outputs.contributionProfit > 0) {
+      // Can reach break-even by cutting ad spend
+      const reduceBy = Math.abs(outputs.profitAfterAds);
+      recs.push({
+        tone: "negative",
+        text: `Reduce ad spend by ${fmtMoney(reduceBy)} to reach break-even at current revenue.`,
+      });
+    } else {
+      // Even zero ad spend won't help — margin is broken
+      recs.push({
+        tone: "negative",
+        text: `Contribution margin is negative — cutting ad spend alone won't reach break-even. Focus on reducing COGS or increasing prices first.`,
+      });
+    }
+  } else if (outputs.profitAfterAds > 0 && outputs.marginBufferPct > 0) {
+    // Room to scale
+    const roomToGrow = outputs.profitAfterAds;
+    recs.push({
+      tone: "positive",
+      text: `Your margin buffer gives you room to scale — you could increase ad spend by up to ${fmtMoney(roomToGrow)} before hitting break-even.`,
+    });
+  }
+
+  if (recs.length === 0) return null;
+
+  const toneStyles = {
+    positive: {
+      card: "border-green-100 bg-green-50",
+      icon: "bg-green-100",
+      dot: "#16a34a",
+      path: "M2 6l3.5 3.5L11 3",
+    },
+    negative: {
+      card: "border-red-100 bg-red-50",
+      icon: "bg-red-100",
+      dot: "#dc2626",
+      path: "M6 2v4M6 8h.01",
+    },
+    neutral: {
+      card: "border-gray-100 bg-gray-50",
+      icon: "bg-gray-100",
+      dot: "#6b7280",
+      path: "M6 3v3M6 8h.01",
+    },
+  };
+
+  return (
+    <div>
+      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2.5">Recommendations</p>
+      <div className="space-y-2">
+        {recs.map((rec, i) => {
+          const s = toneStyles[rec.tone];
+          return (
+            <div key={i} className={`flex items-start gap-3 rounded-xl border px-4 py-3.5 ${s.card}`}>
+              <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 mt-0.5 ${s.icon}`}>
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                  <path d={s.path} stroke={s.dot} strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </div>
+              <p className="text-sm text-gray-800 leading-relaxed">{rec.text}</p>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
