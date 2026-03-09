@@ -158,9 +158,9 @@ export default function HomePage() {
       <main className="max-w-5xl mx-auto px-6 py-10">
         {/* Page title */}
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Profitability Analysis</h1>
+          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Scale Sanity Check</h1>
           <p className="mt-1.5 text-sm text-gray-500 max-w-lg">
-            Upload your orders CSV to calculate true ROAS, contribution margin, and break-even metrics.
+            Most ecommerce brands don&apos;t know their true ROAS. Upload your orders CSV and instantly see your real contribution margin, break-even ROAS, and whether your ad spend is actually profitable.
           </p>
         </div>
 
