@@ -333,52 +333,92 @@ export default function HomePage() {
 
             {/* Revenue breakdown */}
             <MetricGroup label="Revenue">
-              <MetricCard title="Gross Revenue" value={fmtMoney(outputs.grossRevenue)} />
+              <MetricCard
+                title="Gross Revenue"
+                value={fmtMoney(outputs.grossRevenue)}
+                tooltip="Total revenue from orders before refunds, fees, or any deductions."
+              />
               <MetricCard
                 title="Total Refunds"
                 value={fmtMoney(outputs.totalRefunds)}
                 sub={fmtPct(outputs.refundRatePct) + " refund rate"}
                 tone="negative"
+                tooltip="Total value of refunded orders during this period."
               />
-              <MetricCard title="Stripe Fees" value={fmtMoney(outputs.totalStripeFees)} tone="negative" />
-              <MetricCard title="Net Revenue" value={fmtMoney(outputs.netRevenue)} emphasis />
+              <MetricCard
+                title="Stripe Fees"
+                value={fmtMoney(outputs.totalStripeFees)}
+                tone="negative"
+                tooltip="Estimated payment processing costs based on your fee rate and fixed fee per transaction."
+              />
+              <MetricCard
+                title="Net Revenue"
+                value={fmtMoney(outputs.netRevenue)}
+                emphasis
+                tooltip="Gross revenue minus refunds and Stripe fees — what actually lands in your account."
+              />
+              <MetricCard
+                title="AOV"
+                value={fmtMoney(outputs.aov)}
+                tooltip="Average revenue per order after refunds — the typical value of a single transaction."
+              />
             </MetricGroup>
 
             {/* Profitability */}
             <MetricGroup label="Profitability">
-              <MetricCard title="COGS Total" value={fmtMoney(outputs.cogsTotal)} tone="negative" />
+              <MetricCard
+                title="COGS Total"
+                value={fmtMoney(outputs.cogsTotal)}
+                tone="negative"
+                tooltip="Estimated cost of goods sold, calculated as your COGS % applied to gross revenue."
+              />
               <MetricCard
                 title="Contribution Profit"
                 value={fmtMoney(outputs.contributionProfit)}
                 tone={outputs.contributionProfit >= 0 ? "positive" : "negative"}
+                tooltip="What's left after COGS, fees, and refunds — before ad spend."
               />
               <MetricCard
                 title="Profit After Ads"
                 value={fmtMoney(outputs.profitAfterAds)}
                 tone={outputs.profitAfterAds >= 0 ? "positive" : "negative"}
                 emphasis
+                tooltip="Your bottom-line profit after all costs including ad spend."
               />
-              <MetricCard title="Order Count" value={`${outputs.orderCount}`} sub="orders analyzed" />
+              <MetricCard
+                title="Order Count"
+                value={`${outputs.orderCount}`}
+                sub="orders analyzed"
+                tooltip="Total number of orders included in this analysis."
+              />
             </MetricGroup>
 
             {/* Efficiency */}
             <MetricGroup label="Efficiency">
-              <MetricCard title="True ROAS" value={fmtX(outputs.trueRoasX)} emphasis />
+              <MetricCard
+                title="True ROAS"
+                value={fmtX(outputs.trueRoasX)}
+                emphasis
+                tooltip="Revenue generated for every $1 spent on ads after refunds and fees."
+              />
               <MetricCard
                 title="Break-even ROAS"
                 value={outputs.breakEvenRoasX > 0 ? fmtX(outputs.breakEvenRoasX) : "—"}
                 sub="minimum to cover costs"
+                tooltip="The minimum ROAS you need to cover all costs — below this you're losing money."
               />
               <MetricCard
                 title="Contribution Margin"
                 value={fmtPct(outputs.contributionMarginPct)}
                 tone={outputs.contributionMarginPct > 0 ? "positive" : "negative"}
+                tooltip="What's left after COGS, fees, and refunds as a percentage of gross revenue — before ad spend."
               />
               <MetricCard
                 title="Margin Buffer"
                 value={`${(outputs.marginBufferPct * 100).toFixed(1)}%`}
                 tone={outputs.marginBufferPct >= 0 ? "positive" : "negative"}
                 sub={outputs.marginBufferPct >= 0 ? "above break-even" : "below break-even"}
+                tooltip="How far your current ROAS is above or below break-even — positive means you have room to scale."
               />
             </MetricGroup>
 
@@ -574,6 +614,7 @@ function MetricCard({
   hint,
   sub,
   emphasis,
+  tooltip,
 }: {
   title: string;
   value: string;
@@ -581,6 +622,7 @@ function MetricCard({
   hint?: string;
   sub?: string;
   emphasis?: boolean;
+  tooltip?: string;
 }) {
   const valueClass =
     tone === "positive"
@@ -597,7 +639,21 @@ function MetricCard({
           : "bg-white border-gray-100 hover:border-gray-200"
       }`}
     >
-      <p className="text-xs font-medium text-gray-500 mb-1.5 truncate">{title}</p>
+      <div className="flex items-center gap-1 mb-1.5">
+        <p className="text-xs font-medium text-gray-500 truncate">{title}</p>
+        {tooltip && (
+          <div className="relative group shrink-0">
+            <svg className="w-3 h-3 text-gray-300 hover:text-gray-400 transition-colors cursor-default" viewBox="0 0 16 16" fill="none">
+              <circle cx="8" cy="8" r="6.5" stroke="currentColor" strokeWidth="1.5"/>
+              <path d="M8 7v4M8 5.5h.01" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+            </svg>
+            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block z-10 w-52 bg-gray-900 text-white text-[11px] leading-snug rounded-lg px-2.5 py-2 shadow-lg pointer-events-none">
+              {tooltip}
+              <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900" />
+            </div>
+          </div>
+        )}
+      </div>
       <p className={`text-[17px] font-bold leading-none tracking-tight ${valueClass}`}>{value}</p>
       {(sub || hint) && (
         <p className="text-[11px] text-gray-400 mt-1.5 leading-tight">{sub ?? hint}</p>

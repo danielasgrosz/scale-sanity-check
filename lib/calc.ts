@@ -28,6 +28,7 @@ export type Outputs = {
   contributionMarginPct: number; // 0..1
   breakEvenRoasX: number;        // multiplier
   marginBufferPct: number;       // 0..1 (can be negative)
+  aov: number;                   // net revenue / order count
 };
 
 const round2 = (n: number) => Math.round((n + Number.EPSILON) * 100) / 100;
@@ -90,5 +91,6 @@ export function computeFromOrders(inputs: Inputs, orders: OrderRow[]): Outputs {
     contributionMarginPct,
     breakEvenRoasX,
     marginBufferPct,
+    aov: orderCount > 0 ? round2(netRevenue / orderCount) : 0,
   };
 }
