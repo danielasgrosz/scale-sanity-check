@@ -59,6 +59,17 @@ export default function HomePage() {
   const headers = csv?.headers ?? [];
   const canCalculate = !!csv && !!revenueCol;
 
+  const tooFewRows = !!csv && csv.rows.length < 2;
+
+  const noRevenueDetected = !!csv && !revenueCol;
+
+  const revenueColIsEmpty = useMemo(() => {
+    if (!csv || !revenueCol) return false;
+    const values = csv.rows.map((r) => toNumber(r[revenueCol]));
+    const nonZero = values.filter((v) => v > 0);
+    return values.length > 0 && nonZero.length / values.length < 0.1;
+  }, [csv, revenueCol]);
+
   const suggestedRevenue = useMemo(() => {
     const candidates = headers.filter((h) =>
       /revenue|total|amount|gross|price|subtotal/i.test(h)
@@ -247,6 +258,15 @@ export default function HomePage() {
                   </>
                 )}
               </div>
+              {tooFewRows && (
+                <div className="flex items-start gap-2 px-4 pb-4 -mt-1">
+                  <svg className="w-3.5 h-3.5 mt-0.5 shrink-0 text-amber-500" viewBox="0 0 16 16" fill="none">
+                    <path d="M8 2L14.5 13H1.5L8 2Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/>
+                    <path d="M8 6.5V9.5M8 11h.01" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                  </svg>
+                  <p className="text-xs text-amber-700">Your CSV only has {csv!.rows.length} row of data — make sure you exported all orders, not just a summary.</p>
+                </div>
+              )}
             </div>
           </StepCard>
 
@@ -256,6 +276,15 @@ export default function HomePage() {
             {/* Step 2: Map Columns */}
             <StepCard step={2} title="Map Columns" locked={!csv}>
               <div className="space-y-4">
+                {noRevenueDetected && (
+                  <div className="flex items-start gap-2 rounded-lg bg-amber-50 border border-amber-200 px-3 py-2.5">
+                    <svg className="w-3.5 h-3.5 mt-0.5 shrink-0 text-amber-500" viewBox="0 0 16 16" fill="none">
+                      <path d="M8 2L14.5 13H1.5L8 2Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/>
+                      <path d="M8 6.5V9.5M8 11h.01" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                    </svg>
+                    <p className="text-xs text-amber-800 leading-relaxed">We couldn&apos;t find a revenue column automatically — look for a column named <span className="font-medium">Total</span>, <span className="font-medium">Gross Revenue</span>, <span className="font-medium">Subtotal</span>, or <span className="font-medium">Amount</span> and select it below.</p>
+                  </div>
+                )}
                 <Field label="Which column is your order revenue?" required hint="required" autoDetected={revAutoDetected}>
                   <SelectInput
                     value={revenueCol}
@@ -264,6 +293,15 @@ export default function HomePage() {
                     placeholder={csv ? "Select a column…" : "Upload CSV first"}
                     options={headers}
                   />
+                  {revenueColIsEmpty && (
+                    <p className="mt-1.5 flex items-center gap-1.5 text-xs text-amber-700">
+                      <svg className="w-3 h-3 shrink-0 text-amber-500" viewBox="0 0 16 16" fill="none">
+                        <path d="M8 2L14.5 13H1.5L8 2Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/>
+                        <path d="M8 6.5V9.5M8 11h.01" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                      </svg>
+                      The column you selected looks empty — double check you picked the right one.
+                    </p>
+                  )}
                 </Field>
                 <Field label="Which column shows refunds or returns?" hint="optional" autoDetected={refAutoDetected}>
                   <SelectInput
