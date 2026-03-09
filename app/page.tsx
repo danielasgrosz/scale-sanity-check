@@ -158,7 +158,7 @@ export default function HomePage() {
       <main className="max-w-5xl mx-auto px-6 py-10">
         {/* Page title */}
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Scale Sanity Check</h1>
+          <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Scale Sanity Check</h1>
           <p className="mt-1.5 text-sm text-gray-500 max-w-lg">
             Most ecommerce brands don&apos;t know their true ROAS. Upload your orders CSV and instantly see your real contribution margin, break-even ROAS, and whether your ad spend is actually profitable.
           </p>
@@ -181,7 +181,7 @@ export default function HomePage() {
         </div>
 
         {/* Steps */}
-        <div className="space-y-3">
+        <div className="space-y-3 mt-10">
 
           {/* Step 1: Upload */}
           <StepCard step={1} title="Upload Orders CSV" complete={!!csv}>
@@ -291,7 +291,7 @@ export default function HomePage() {
               <button
                 onClick={calculate}
                 disabled={!canCalculate}
-                className={`w-full py-2.5 px-4 rounded-lg text-sm font-semibold transition-all duration-150 ${
+                className={`w-full py-3 px-4 rounded-lg text-sm font-semibold transition-all duration-150 ${
                   canCalculate
                     ? "bg-gray-900 text-white hover:bg-gray-800 active:scale-[0.99] shadow-sm cursor-pointer"
                     : "bg-gray-100 text-gray-400 cursor-not-allowed"
@@ -389,7 +389,7 @@ export default function HomePage() {
       {/* Footer strip — always visible */}
       <footer className="border-t border-gray-100 bg-white mt-16">
         <div className="max-w-5xl mx-auto px-6 py-5 flex items-center justify-between gap-4">
-          <p className="text-xs text-gray-400">
+          <p className="text-xs text-gray-300">
             Want deeper analysis — ad scaling simulations, recommendations, and more?
           </p>
           <a
