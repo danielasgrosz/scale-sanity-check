@@ -368,6 +368,9 @@ export default function HomePage() {
               <span className="text-xs text-gray-400">{csv?.rows.length} orders · {csv?.headers.length} columns</span>
             </div>
 
+            {/* How to read these results */}
+            <GlossaryCard />
+
             {/* Summary callout */}
             <Summary outputs={outputs} />
 
@@ -480,6 +483,62 @@ export default function HomePage() {
 }
 
 /* ─── Sub-components ────────────────────────────────────────── */
+
+function GlossaryCard() {
+  const [open, setOpen] = useState(false);
+
+  const terms = [
+    {
+      term: "True ROAS",
+      def: "For every $1 you spent on ads, you made $X in revenue after refunds and fees — unlike platform ROAS which ignores these costs.",
+    },
+    {
+      term: "Contribution Margin",
+      def: "The % of each sale left over after product costs, refunds, and payment fees — before counting ad spend.",
+    },
+    {
+      term: "Break-even ROAS",
+      def: "The minimum return you need on ad spend just to cover all your costs.",
+    },
+    {
+      term: "Margin Buffer",
+      def: "How much breathing room you have between your current ROAS and the point where you'd start losing money.",
+    },
+    {
+      term: "AOV",
+      def: "Your average revenue per order after refunds.",
+    },
+  ];
+
+  return (
+    <div className="rounded-xl border border-gray-200 bg-gray-50 overflow-hidden">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-gray-100 transition-colors cursor-pointer"
+      >
+        <span className="text-xs font-medium text-gray-500">How to read these results</span>
+        <svg
+          className={`w-3.5 h-3.5 text-gray-400 transition-transform duration-200 shrink-0 ${open ? "rotate-180" : ""}`}
+          viewBox="0 0 14 14"
+          fill="none"
+        >
+          <path d="M3 5l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      </button>
+      {open && (
+        <div className="px-4 pb-4 pt-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-3.5 border-t border-gray-200">
+          {terms.map(({ term, def }) => (
+            <div key={term}>
+              <p className="text-[11px] font-semibold text-gray-700 mb-0.5">{term}</p>
+              <p className="text-[11px] text-gray-500 leading-relaxed">{def}</p>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 function ExportGuide() {
   const [open, setOpen] = useState(false);
