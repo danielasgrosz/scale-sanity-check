@@ -182,8 +182,8 @@ export default function HomePage() {
         </div>
 
         {/* Early access banner */}
-        <div className="mb-8 flex flex-col sm:flex-row sm:items-center gap-3 rounded-xl bg-indigo-50 border border-indigo-100 px-4 py-3.5">
-          <p className="flex-1 text-sm text-indigo-700 leading-relaxed">
+        <div className="mb-8 flex flex-col sm:flex-row sm:items-center gap-4 rounded-xl bg-gray-900 px-5 py-4">
+          <p className="flex-1 text-sm text-gray-300 leading-relaxed">
             We&apos;re building smarter tools — ad scaling simulations, spend recommendations, and insights based on your actual numbers.
           </p>
           <a
@@ -191,7 +191,7 @@ export default function HomePage() {
             target="_blank"
             rel="noopener noreferrer"
             onClick={() => window.plausible?.("EarlyAccessClick")}
-            className="shrink-0 text-xs font-semibold px-3.5 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition-colors"
+            className="shrink-0 text-xs font-semibold px-4 py-2.5 rounded-lg bg-white text-gray-900 hover:bg-gray-100 transition-colors"
           >
             Join Early Access
           </a>
@@ -475,23 +475,6 @@ export default function HomePage() {
         )}
       </main>
 
-      {/* Footer strip — always visible */}
-      <footer className="border-t border-gray-100 bg-white mt-16">
-        <div className="max-w-5xl mx-auto px-6 py-5 flex items-center justify-between gap-4">
-          <p className="text-xs text-gray-300">
-            Want deeper analysis — ad scaling simulations, recommendations, and more?
-          </p>
-          <a
-            href={EARLY_ACCESS_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={() => window.plausible?.("EarlyAccessClick")}
-            className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-gray-900 text-white hover:bg-gray-800 transition-colors shrink-0"
-          >
-            Join early access
-          </a>
-        </div>
-      </footer>
     </div>
   );
 }
