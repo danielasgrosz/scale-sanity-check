@@ -803,14 +803,14 @@ function Recommendations({ outputs }: { outputs: Outputs }) {
   type Rec = { tone: "positive" | "negative" | "neutral"; headline: string; body: string };
   const recs: Rec[] = [];
 
-  // Ad spend / break-even
+  // Card 1: ad spend action
   if (outputs.profitAfterAds < 0) {
     if (outputs.contributionProfit > 0) {
       const reduceBy = Math.abs(outputs.profitAfterAds);
       recs.push({
         tone: "negative",
         headline: `Cut ad spend by ${fmtMoney(reduceBy)} to reach break-even`,
-        body: `At current revenue, reducing ad spend by ${fmtMoney(reduceBy)} would bring you to exactly $0 profit. Below that you're profitable; above that you're losing money.`,
+        body: `At current revenue, reducing ad spend by ${fmtMoney(reduceBy)} would bring profit to exactly $0. Any reduction beyond that puts you in the black.`,
       });
     } else {
       recs.push({
@@ -819,32 +819,25 @@ function Recommendations({ outputs }: { outputs: Outputs }) {
         body: `Even with zero ad spend you'd be losing money. Focus on reducing COGS or increasing prices before scaling ads.`,
       });
     }
-  } else if (outputs.profitAfterAds > 0 && outputs.marginBufferPct > 0) {
-    const roomToGrow = outputs.profitAfterAds;
+  } else if (outputs.contributionProfit > 0) {
+    // adSpend = contributionProfit - profitAfterAds
+    const adSpend = outputs.contributionProfit - outputs.profitAfterAds;
+    const roomToGrow = outputs.contributionProfit - adSpend; // = profitAfterAds
     recs.push({
       tone: "positive",
       headline: `Room to scale — up to ${fmtMoney(roomToGrow)} more in ad spend`,
-      body: `Your current ROAS of ${fmtX(outputs.trueRoasX)} is ${(outputs.marginBufferPct * 100).toFixed(1)}% above break-even. You could increase ad spend by ${fmtMoney(roomToGrow)} before hitting break-even at current revenue.`,
+      body: `Your contribution profit is ${fmtMoney(outputs.contributionProfit)} and you're currently spending ${fmtMoney(adSpend)} on ads. You could increase ad spend by ${fmtMoney(roomToGrow)} before profit hits zero.`,
     });
   }
 
-  // Break-even ROAS baseline
-  if (outputs.breakEvenRoasX > 0) {
-    recs.push({
-      tone: "neutral",
-      headline: `Minimum ROAS to stay profitable: ${fmtX(outputs.breakEvenRoasX)}`,
-      body: `For every $1 of ad spend, you need to generate at least ${fmtX(outputs.breakEvenRoasX)} in gross revenue to cover all costs. Your current ROAS is ${fmtX(outputs.trueRoasX)}.`,
-    });
-  }
-
-  // AOV improvement insight
+  // Card 2: AOV improvement
   if (outputs.aov > 0 && outputs.orderCount > 0 && outputs.contributionMarginPct > 0) {
     const targetAOV = outputs.aov * 1.1;
-    const additionalProfit = outputs.aov * 0.1 * outputs.orderCount * outputs.contributionMarginPct;
+    const additionalProfit = outputs.orderCount * outputs.aov * 0.1 * outputs.contributionMarginPct;
     recs.push({
       tone: "neutral",
       headline: `Raising AOV from ${fmtMoney(outputs.aov)} to ${fmtMoney(targetAOV)} adds ~${fmtMoney(additionalProfit)} in profit`,
-      body: `A 10% increase in average order value — through upsells, bundles, or minimum order thresholds — would generate approximately ${fmtMoney(additionalProfit)} more in contribution profit at your current order volume.`,
+      body: `A 10% increase in average order value — through upsells, bundles, or minimum order thresholds — would add approximately ${fmtMoney(additionalProfit)} in contribution profit at your current order volume.`,
     });
   }
 
