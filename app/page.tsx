@@ -53,6 +53,9 @@ export default function HomePage() {
   const [outputs, setOutputs] = useState<Outputs | null>(null);
   const [error, setError] = useState<string>("");
 
+  const [revAutoDetected, setRevAutoDetected] = useState(false);
+  const [refAutoDetected, setRefAutoDetected] = useState(false);
+
   const headers = csv?.headers ?? [];
   const canCalculate = !!csv && !!revenueCol;
 
@@ -99,6 +102,8 @@ export default function HomePage() {
 
         setRevenueCol(rev);
         setRefundCol(ref);
+        setRevAutoDetected(!!rev);
+        setRefAutoDetected(!!ref);
       },
       error: (err) => {
         setError(`CSV parse error: ${err.message}`);
@@ -237,6 +242,7 @@ export default function HomePage() {
                         Drop your CSV here, or <span className="text-gray-900 underline underline-offset-2 decoration-gray-400">browse files</span>
                       </p>
                       <p className="text-xs text-gray-400 mt-0.5">Row 1 must contain column headers</p>
+                      <p className="text-xs text-gray-400 mt-1">Needs a revenue column (e.g. <span className="font-medium">Total</span>, <span className="font-medium">Gross Revenue</span>, <span className="font-medium">Subtotal</span>, <span className="font-medium">Amount</span>) and optionally a refunds column.</p>
                     </div>
                   </>
                 )}
@@ -250,19 +256,19 @@ export default function HomePage() {
             {/* Step 2: Map Columns */}
             <StepCard step={2} title="Map Columns" locked={!csv}>
               <div className="space-y-4">
-                <Field label="Gross Revenue Column" required hint="required">
+                <Field label="Which column is your order revenue?" required hint="required" autoDetected={revAutoDetected}>
                   <SelectInput
                     value={revenueCol}
-                    onChange={setRevenueCol}
+                    onChange={(v) => { setRevenueCol(v); setRevAutoDetected(false); }}
                     disabled={!csv}
                     placeholder={csv ? "Select a column…" : "Upload CSV first"}
                     options={headers}
                   />
                 </Field>
-                <Field label="Refund Column" hint="optional">
+                <Field label="Which column shows refunds or returns?" hint="optional" autoDetected={refAutoDetected}>
                   <SelectInput
                     value={refundCol}
-                    onChange={setRefundCol}
+                    onChange={(v) => { setRefundCol(v); setRefAutoDetected(false); }}
                     disabled={!csv}
                     placeholder="No refunds column"
                     options={headers}
@@ -455,21 +461,30 @@ function Field({
   label,
   hint,
   required,
+  autoDetected,
   children,
 }: {
   label: string;
   hint?: string;
   required?: boolean;
+  autoDetected?: boolean;
   children: React.ReactNode;
 }) {
   return (
     <div>
-      <div className="flex items-baseline justify-between mb-1.5">
-        <label className="text-xs font-medium text-gray-700">
-          {label}
-          {required && <span className="text-red-400 ml-0.5">*</span>}
-        </label>
-        {hint && <span className="text-xs text-gray-400">{hint}</span>}
+      <div className="flex items-center justify-between mb-1.5 gap-2">
+        <div className="flex items-center gap-1.5 min-w-0">
+          <label className="text-xs font-medium text-gray-700 truncate">
+            {label}
+            {required && <span className="text-red-400 ml-0.5">*</span>}
+          </label>
+          {autoDetected && (
+            <span className="shrink-0 text-[10px] font-semibold text-green-700 bg-green-50 border border-green-200 px-1.5 py-0.5 rounded-full leading-none">
+              Auto-detected
+            </span>
+          )}
+        </div>
+        {hint && <span className="text-xs text-gray-400 shrink-0">{hint}</span>}
       </div>
       {children}
     </div>
