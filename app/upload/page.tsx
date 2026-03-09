@@ -4,6 +4,15 @@ import React, { useMemo, useRef, useState } from "react";
 import Papa from "papaparse";
 import { computeFromOrders, Inputs, OrderRow, Outputs } from "@/lib/calc";
 
+declare global {
+  interface Window {
+    plausible?: (event: string, options?: Record<string, unknown>) => void;
+  }
+}
+
+const EARLY_ACCESS_URL =
+  "https://docs.google.com/forms/d/e/1FAIpQLSe4u_eAaiF8S1cVBG9IdgkD8fESN0ibIH718DFRTllpHp_H_Q/viewform";
+
 type ParsedCSV = {
   headers: string[];
   rows: Record<string, string>[];
@@ -369,9 +378,10 @@ export default function UploadPage() {
             Want deeper analysis — ad scaling simulations, recommendations, and more?
           </p>
           <a
-            href="https://docs.google.com/forms/d/e/1FAIpQLSe4u_eAaiF8S1cVBG9IdgkD8fESN0ibIH718DFRTllpHp_H_Q/viewform"
+            href={EARLY_ACCESS_URL}
             target="_blank"
             rel="noopener noreferrer"
+            onClick={() => window.plausible?.("EarlyAccessClick")}
             className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-gray-900 text-white hover:bg-gray-800 transition-colors shrink-0"
           >
             Join early access
@@ -578,9 +588,10 @@ function EarlyAccessCard() {
       </div>
       <div className="shrink-0">
         <a
-          href="https://docs.google.com/forms/d/e/1FAIpQLSe4u_eAaiF8S1cVBG9IdgkD8fESN0ibIH718DFRTllpHp_H_Q/viewform"
+          href={EARLY_ACCESS_URL}
           target="_blank"
           rel="noopener noreferrer"
+          onClick={() => window.plausible?.("EarlyAccessClick")}
           className="inline-block py-2.5 px-5 rounded-xl text-sm font-semibold bg-white text-gray-900 hover:bg-gray-100 transition-colors"
         >
           Join Early Access
