@@ -819,15 +819,16 @@ function Recommendations({ outputs }: { outputs: Outputs }) {
         body: `Even with zero ad spend you'd be losing money. Focus on reducing COGS or increasing prices before scaling ads.`,
       });
     }
-  } else if (outputs.contributionProfit > 0) {
-    // adSpend = contributionProfit - profitAfterAds
+  } else if (outputs.contributionProfit > 0 && outputs.breakEvenRoasX > 0) {
     const adSpend = outputs.contributionProfit - outputs.profitAfterAds;
-    const roomToGrow = outputs.contributionProfit - adSpend; // = profitAfterAds
-    recs.push({
-      tone: "positive",
-      headline: `Room to scale — up to ${fmtMoney(roomToGrow)} more in ad spend`,
-      body: `Your contribution profit is ${fmtMoney(outputs.contributionProfit)} and you're currently spending ${fmtMoney(adSpend)} on ads. You could increase ad spend by ${fmtMoney(roomToGrow)} before profit hits zero.`,
-    });
+    const roomToGrow = (outputs.contributionProfit / outputs.breakEvenRoasX) - adSpend;
+    if (roomToGrow > 0) {
+      recs.push({
+        tone: "positive",
+        headline: `Room to scale — up to ${fmtMoney(roomToGrow)} more in ad spend`,
+        body: `Based on your break-even ROAS of ${fmtX(outputs.breakEvenRoasX)}, you could increase ad spend by up to ${fmtMoney(roomToGrow)} before profit hits zero.`,
+      });
+    }
   }
 
   // Card 2: AOV improvement
