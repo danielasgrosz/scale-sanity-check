@@ -179,6 +179,7 @@ export default function HomePage() {
           <p className="mt-1.5 text-sm text-gray-500 max-w-lg">
             Most ecommerce brands don&apos;t know their true ROAS. Upload your orders CSV and instantly see your real contribution margin, break-even ROAS, and whether your ad spend is actually profitable.
           </p>
+          <p className="mt-2 text-xs text-gray-400">Built as a quick experiment in translating messy ecommerce data into clearer operating decisions.</p>
         </div>
 
         {/* Early access banner */}
@@ -377,6 +378,9 @@ export default function HomePage() {
             {/* Recommendations */}
             <Recommendations outputs={outputs} />
 
+            {/* Decision Summary */}
+            <DecisionSummary outputs={outputs} />
+
             {/* Revenue breakdown */}
             <MetricGroup label="Revenue">
               <MetricCard
@@ -444,27 +448,29 @@ export default function HomePage() {
               <MetricCard
                 title="True ROAS"
                 value={fmtX(outputs.trueRoasX)}
-                emphasis
+                highlight
                 tooltip="Revenue generated for every $1 spent on ads after refunds and fees."
               />
               <MetricCard
                 title="Break-even ROAS"
                 value={outputs.breakEvenRoasX > 0 ? fmtX(outputs.breakEvenRoasX) : "—"}
                 sub="minimum to cover costs"
+                highlight
                 tooltip="The minimum ROAS you need to cover all costs — below this you're losing money."
-              />
-              <MetricCard
-                title="Contribution Margin"
-                value={fmtPct(outputs.contributionMarginPct)}
-                tone={outputs.contributionMarginPct > 0 ? "positive" : "negative"}
-                tooltip="What's left after COGS, fees, and refunds as a percentage of gross revenue — before ad spend."
               />
               <MetricCard
                 title="Margin Buffer"
                 value={`${(outputs.marginBufferPct * 100).toFixed(1)}%`}
                 tone={outputs.marginBufferPct >= 0 ? "positive" : "negative"}
                 sub={outputs.marginBufferPct >= 0 ? "above break-even" : "below break-even"}
+                highlight
                 tooltip="How far your current ROAS is above or below break-even — positive means you have room to scale."
+              />
+              <MetricCard
+                title="Contribution Margin"
+                value={fmtPct(outputs.contributionMarginPct)}
+                tone={outputs.contributionMarginPct > 0 ? "positive" : "negative"}
+                tooltip="What's left after COGS, fees, and refunds as a percentage of gross revenue — before ad spend."
               />
             </MetricGroup>
 
@@ -785,6 +791,7 @@ function MetricCard({
   hint,
   sub,
   emphasis,
+  highlight,
   tooltip,
 }: {
   title: string;
@@ -793,6 +800,7 @@ function MetricCard({
   hint?: string;
   sub?: string;
   emphasis?: boolean;
+  highlight?: boolean;
   tooltip?: string;
 }) {
   const valueClass =
@@ -805,7 +813,9 @@ function MetricCard({
   return (
     <div
       className={`rounded-xl px-4 py-3.5 border transition-colors ${
-        emphasis
+        highlight
+          ? "bg-gray-50 border-gray-300"
+          : emphasis
           ? "bg-gray-50 border-gray-200"
           : "bg-white border-gray-100 hover:border-gray-200"
       }`}
@@ -829,6 +839,36 @@ function MetricCard({
       {(sub || hint) && (
         <p className="text-[11px] text-gray-400 mt-1.5 leading-tight">{sub ?? hint}</p>
       )}
+    </div>
+  );
+}
+
+function DecisionSummary({ outputs }: { outputs: Outputs }) {
+  const profitable = outputs.profitAfterAds > 0;
+  const aov = outputs.orderCount > 0 ? outputs.netRevenue / outputs.orderCount : 0;
+
+  const interpretation = profitable
+    ? "At your current ad spend, the business is generating positive contribution profit."
+    : "At your current ad spend, the business is operating below break-even.";
+
+  return (
+    <div className="rounded-xl border border-gray-200 bg-white px-5 py-4">
+      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Decision Summary</p>
+      <div className="space-y-2 mb-3">
+        <div className="flex items-center justify-between">
+          <span className="text-xs text-gray-500">Orders analyzed</span>
+          <span className="text-xs font-semibold text-gray-900">{outputs.orderCount}</span>
+        </div>
+        <div className="flex items-center justify-between">
+          <span className="text-xs text-gray-500">Average order value</span>
+          <span className="text-xs font-semibold text-gray-900">{fmtMoney(aov)}</span>
+        </div>
+        <div className="flex items-center justify-between">
+          <span className="text-xs text-gray-500">Contribution margin</span>
+          <span className="text-xs font-semibold text-gray-900">{fmtPct(outputs.contributionMarginPct)}</span>
+        </div>
+      </div>
+      <p className="text-xs text-gray-500 leading-relaxed border-t border-gray-100 pt-3">{interpretation}</p>
     </div>
   );
 }
@@ -860,48 +900,51 @@ function EarlyAccessCard() {
 
 function Recommendations({ outputs }: { outputs: Outputs }) {
   type Rec = { tone: "positive" | "negative" | "neutral"; headline: string; body: string };
-  const recs: Rec[] = [];
 
-  // Card 1: ad spend action
+  // Primary action — single most important thing to do
+  let primaryAction: Rec | null = null;
+
   if (outputs.profitAfterAds < 0) {
     if (outputs.contributionProfit > 0) {
       const reduceBy = Math.abs(outputs.profitAfterAds);
-      recs.push({
+      primaryAction = {
         tone: "negative",
-        headline: `Cut ad spend by ${fmtMoney(reduceBy)} to reach break-even`,
+        headline: `Reduce ad spend by ${fmtMoney(reduceBy)} to reach break-even`,
         body: `At current revenue, reducing ad spend by ${fmtMoney(reduceBy)} would bring profit to exactly $0. Any reduction beyond that puts you in the black.`,
-      });
+      };
     } else {
-      recs.push({
+      primaryAction = {
         tone: "negative",
         headline: "Contribution margin is negative — ads aren't the root problem",
         body: `Even with zero ad spend you'd be losing money. Focus on reducing COGS or increasing prices before scaling ads.`,
-      });
+      };
     }
   } else if (outputs.contributionProfit > 0 && outputs.breakEvenRoasX > 0) {
     const adSpend = outputs.contributionProfit - outputs.profitAfterAds;
     const roomToGrow = (outputs.contributionProfit / outputs.breakEvenRoasX) - adSpend;
     if (roomToGrow > 0) {
-      recs.push({
+      primaryAction = {
         tone: "positive",
-        headline: `Room to scale — up to ${fmtMoney(roomToGrow)} more in ad spend`,
+        headline: `You could scale ad spend by up to ${fmtMoney(roomToGrow)} before hitting break-even`,
         body: `Based on your break-even ROAS of ${fmtX(outputs.breakEvenRoasX)}, you could increase ad spend by up to ${fmtMoney(roomToGrow)} before profit hits zero.`,
-      });
+      };
     }
   }
 
-  // Card 2: AOV improvement
+  // Secondary insights
+  const secondaryRecs: Rec[] = [];
+
   if (outputs.aov > 0 && outputs.orderCount > 0 && outputs.contributionMarginPct > 0) {
     const targetAOV = outputs.aov * 1.1;
     const additionalProfit = outputs.orderCount * outputs.aov * 0.1 * outputs.contributionMarginPct;
-    recs.push({
+    secondaryRecs.push({
       tone: "neutral",
       headline: `Raising AOV from ${fmtMoney(outputs.aov)} to ${fmtMoney(targetAOV)} adds ~${fmtMoney(additionalProfit)} in profit`,
       body: `A 10% increase in average order value — through upsells, bundles, or minimum order thresholds — would add approximately ${fmtMoney(additionalProfit)} in contribution profit at your current order volume.`,
     });
   }
 
-  if (recs.length === 0) return null;
+  if (!primaryAction && secondaryRecs.length === 0) return null;
 
   const toneStyles = {
     positive: { card: "border-green-100 bg-green-50", icon: "bg-green-100", dot: "#16a34a", path: "M2 6l3.5 3.5L11 3" },
@@ -913,18 +956,35 @@ function Recommendations({ outputs }: { outputs: Outputs }) {
     <div>
       <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2.5">Recommendations</p>
       <div className="space-y-2">
-        {recs.map((rec, i) => {
-          const s = toneStyles[rec.tone];
+        {primaryAction && (() => {
+          const s = toneStyles[primaryAction.tone];
           return (
-            <div key={i} className={`flex items-start gap-3 rounded-xl border px-4 py-4 ${s.card}`}>
+            <div className={`flex items-start gap-3 rounded-xl border px-4 py-4 ${s.card}`}>
               <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 mt-0.5 ${s.icon}`}>
                 <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
                   <path d={s.path} stroke={s.dot} strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
               </div>
               <div>
-                <p className="text-sm font-semibold text-gray-900 leading-snug">{rec.headline}</p>
-                <p className="text-xs text-gray-600 mt-1 leading-relaxed">{rec.body}</p>
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Primary Action</p>
+                <p className="text-sm font-semibold text-gray-900 leading-snug">{primaryAction.headline}</p>
+                <p className="text-xs text-gray-600 mt-1 leading-relaxed">{primaryAction.body}</p>
+              </div>
+            </div>
+          );
+        })()}
+        {secondaryRecs.map((rec, i) => {
+          const s = toneStyles[rec.tone];
+          return (
+            <div key={i} className={`flex items-start gap-3 rounded-xl border px-4 py-3 ${s.card} opacity-80`}>
+              <div className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5 ${s.icon}`}>
+                <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
+                  <path d={s.path} stroke={s.dot} strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </div>
+              <div>
+                <p className="text-xs font-medium text-gray-700 leading-snug">{rec.headline}</p>
+                <p className="text-[11px] text-gray-500 mt-1 leading-relaxed">{rec.body}</p>
               </div>
             </div>
           );
@@ -936,52 +996,56 @@ function Recommendations({ outputs }: { outputs: Outputs }) {
 
 function Summary({ outputs }: { outputs: Outputs }) {
   const profitable = outputs.profitAfterAds > 0;
-  const bufferAbs = (Math.abs(outputs.marginBufferPct) * 100).toFixed(1);
+  const tightHeadroom = profitable && outputs.marginBufferPct < 0.20;
 
-  const profitLine = profitable
-    ? `Profitable after ads — generating ${fmtMoney(outputs.profitAfterAds)} this period.`
-    : `Not profitable after ads — losing ${fmtMoney(Math.abs(outputs.profitAfterAds))} this period.`;
+  const headline = !profitable
+    ? "Scaling ads is currently unprofitable"
+    : tightHeadroom
+    ? "Profitable, but ad spend headroom is tight"
+    : "Ad spend has room to scale";
 
-  const breakevenLine =
-    outputs.breakEvenRoasX > 0
-      ? `Break-even requires a minimum ROAS of ${fmtX(outputs.breakEvenRoasX)}.`
-      : "Break-even ROAS cannot be calculated (contribution margin \u2264 0).";
+  const borderBg = !profitable
+    ? "border-red-200 bg-red-50"
+    : tightHeadroom
+    ? "border-amber-200 bg-amber-50"
+    : "border-green-200 bg-green-50";
 
-  const bufferLine =
-    outputs.marginBufferPct >= 0
-      ? `Current ROAS of ${fmtX(outputs.trueRoasX)} is ${bufferAbs}% above break-even — ad spend has room to grow.`
-      : `Current ROAS of ${fmtX(outputs.trueRoasX)} is ${bufferAbs}% below break-even — reduce spend or increase revenue.`;
+  const iconBg = !profitable ? "bg-red-200" : tightHeadroom ? "bg-amber-200" : "bg-green-200";
+  const iconStroke = !profitable ? "#b91c1c" : tightHeadroom ? "#92400e" : "#15803d";
+  const headlineColor = !profitable ? "text-red-800" : tightHeadroom ? "text-amber-800" : "text-green-800";
+
+  const profitWord = profitable ? "generating" : "losing";
+  const bufferPct = `${(outputs.marginBufferPct * 100).toFixed(1)}%`;
 
   return (
-    <div
-      className={`rounded-2xl border-2 px-5 py-4 ${
-        profitable ? "border-green-200 bg-green-50" : "border-red-200 bg-red-50"
-      }`}
-    >
+    <div className={`rounded-2xl border-2 px-5 py-4 ${borderBg}`}>
       <div className="flex items-center gap-2 mb-3">
-        <div
-          className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 ${
-            profitable ? "bg-green-200" : "bg-red-200"
-          }`}
-        >
+        <div className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 ${iconBg}`}>
           {profitable ? (
             <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-              <path d="M1.5 5L4 7.5L8.5 2.5" stroke="#15803d" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M1.5 5L4 7.5L8.5 2.5" stroke={iconStroke} strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
           ) : (
             <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-              <path d="M5 2.5v3.5M5 8h.01" stroke="#b91c1c" strokeWidth="1.75" strokeLinecap="round"/>
+              <path d="M5 2.5v3.5M5 8h.01" stroke={iconStroke} strokeWidth="1.75" strokeLinecap="round"/>
             </svg>
           )}
         </div>
-        <h3 className={`text-sm font-bold ${profitable ? "text-green-800" : "text-red-800"}`}>
-          {profitable ? "Profitable" : "Unprofitable"}
-        </h3>
+        <h3 className={`text-sm font-bold ${headlineColor}`}>{headline}</h3>
       </div>
       <div className="space-y-1.5">
-        <p className="text-sm text-gray-800 leading-relaxed">{profitLine}</p>
-        <p className="text-sm text-gray-600 leading-relaxed">{breakevenLine}</p>
-        <p className="text-sm text-gray-600 leading-relaxed">{bufferLine}</p>
+        <p className="text-sm text-gray-800 leading-relaxed">
+          You are {profitWord} <span className="font-semibold">{fmtMoney(Math.abs(outputs.profitAfterAds))}</span> after ad spend
+        </p>
+        <p className="text-sm text-gray-600 leading-relaxed">
+          Break-even ROAS: <span className="font-medium">{outputs.breakEvenRoasX > 0 ? fmtX(outputs.breakEvenRoasX) : "—"}</span>
+        </p>
+        <p className="text-sm text-gray-600 leading-relaxed">
+          Current ROAS: <span className="font-medium">{fmtX(outputs.trueRoasX)}</span>
+        </p>
+        <p className="text-sm text-gray-600 leading-relaxed">
+          Gap: <span className="font-medium">{bufferPct}</span>
+        </p>
       </div>
     </div>
   );
