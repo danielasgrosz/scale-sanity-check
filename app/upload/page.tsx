@@ -365,6 +365,7 @@ export default function UploadPage() {
             {/* Revenue row */}
             <MetricGroup label="Revenue">
               <MetricCard title="Orders" value={`${outputs.orderCount.toLocaleString()}`} icon="📦" />
+              <MetricCard title="Avg Order Value" value={outputs.orderCount > 0 ? fmtMoney(outputs.grossRevenue / outputs.orderCount) : "—"} icon="🛒" />
               <MetricCard title="Gross Revenue" value={fmtMoney(outputs.grossRevenue)} icon="💰" />
               <MetricCard title="Total Refunds" value={fmtMoney(outputs.totalRefunds)} icon="↩️" sentiment={outputs.totalRefunds > 0 ? "negative" : undefined} />
               <MetricCard title="Refund Rate" value={fmtPct(outputs.refundRatePct)} icon="%" sentiment={outputs.refundRatePct > 0.05 ? "negative" : "neutral"} />
@@ -387,6 +388,7 @@ export default function UploadPage() {
             {/* ROAS row */}
             <MetricGroup label="Ad performance" style={{ marginTop: 16 }}>
               <MetricCard title="True ROAS" value={fmtX(outputs.trueRoasX)} icon="🚀" />
+              <MetricCard title="Cost Per Order" value={adSpend > 0 && outputs.orderCount > 0 ? fmtMoney(adSpend / outputs.orderCount) : "—"} icon="🎰" />
               <MetricCard title="Break-even ROAS" value={outputs.breakEvenRoasX > 0 ? fmtX(outputs.breakEvenRoasX) : "—"} icon="⚖️" />
               <MetricCard
                 title="Margin Buffer"
