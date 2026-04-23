@@ -95,6 +95,20 @@ export default function UploadPage() {
     [headers]
   );
 
+  const revenueSamples = useMemo(
+    () => csv && revenueCol
+      ? csv.rows.map((r) => r[revenueCol]).filter((v) => v?.trim()).slice(0, 4)
+      : [],
+    [csv, revenueCol]
+  );
+
+  const refundSamples = useMemo(
+    () => csv && refundCol
+      ? csv.rows.map((r) => r[refundCol]).filter((v) => v?.trim()).slice(0, 4)
+      : [],
+    [csv, refundCol]
+  );
+
   function onFile(file: File) {
     setError("");
     setOutputs(null);
@@ -247,6 +261,7 @@ export default function UploadPage() {
                   placeholder={csv ? "Select a column…" : "Upload a CSV first"}
                   options={headers}
                   suggested={suggestedRevenue}
+                  sampleValues={revenueSamples}
                 />
                 <SelectField
                   label="Refund Column"
@@ -258,6 +273,7 @@ export default function UploadPage() {
                   options={headers}
                   suggested={suggestedRefund}
                   includeEmpty
+                  sampleValues={refundSamples}
                 />
               </div>
             </StepSection>
@@ -605,6 +621,7 @@ function SelectField({
   options,
   suggested,
   includeEmpty,
+  sampleValues,
 }: {
   label: string;
   badge: "required" | "optional";
@@ -615,6 +632,7 @@ function SelectField({
   options: string[];
   suggested: string;
   includeEmpty?: boolean;
+  sampleValues?: string[];
 }) {
   return (
     <div>
@@ -654,6 +672,26 @@ function SelectField({
           ))}
         </select>
       </div>
+      {sampleValues && sampleValues.length > 0 && (
+        <div style={{ display: "flex", gap: 5, flexWrap: "wrap", marginTop: 7 }}>
+          {sampleValues.map((v, i) => (
+            <span
+              key={i}
+              style={{
+                fontSize: 11,
+                fontFamily: "var(--font-geist-mono, monospace)",
+                color: C.textSecondary,
+                background: "#F1F5F9",
+                border: `1px solid ${C.border}`,
+                padding: "2px 7px",
+                borderRadius: 4,
+              }}
+            >
+              {v}
+            </span>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
